@@ -1,16 +1,26 @@
-# ctl
-🐚 A template for Command Line Applications using plain-old Shell Script.
+# hfctl
+👩‍💻 Command line interface for Hyperf applications.
 
 ## Getting started
 
-Make sure your script has `execute` permission:
+### Installation
+
+Just clone it and link to somewhere in your path:
 ```shell
-chmod +x ./ctl
+git clone https://github.com/opencodeco/hfctl.git ~/hfctl
+ln -s ~/hfctl/hfctl /usr/local/bin/hfctl
+```
+
+#### Updates
+
+Then to update, you can just `git pull`:
+```shell
+cd ~/hfctl
+git pull
 ```
 
 ### Usage
 
 | Command | Description |
 | --- | --- |
-| `./ctl list` | List all available commands |
-| `./ctl hello-world` | Hello, World! |
+| `hfctl list` | List all available commands |

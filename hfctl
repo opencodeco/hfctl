@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+start() {         # Starts Hyperf application
+    php bin/hyperf.php start
+}
+
+list_commands() { # Prints current Hyperf application commands
+    php bin/hyperf.php list
+}
+
+list() {          # Prints hfctl commands 
+    cat $0 | grep -E '^[a-z_]+\(\)'
+}
+
+CMD=$(echo ${1:-list} | tr '-' '_')
+ARGS=${@:2}
+$CMD $ARGS
