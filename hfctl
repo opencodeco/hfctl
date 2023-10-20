@@ -1,17 +1,82 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+set -e
 
-start() {         # Starts Hyperf application
-    php bin/hyperf.php start
+HFCTL=v0.1.0
+IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
+HFCID=/tmp/hfctl.cid
+
+version() {
+    echo -e "hfctl: \033[1;32m$HFCTL\033[0m"
+    echo -e "image: \033[1;32m$IMAGE\033[0m"
 }
 
-list_commands() { # Prints current Hyperf application commands
-    php bin/hyperf.php list
+help() {
+    echo -e "\033[1;33mUsage:\033[0m"
+    echo -e "   hfctl <command> [arguments]"
+    echo -e ""
+    echo -e "\033[1;33mCommands:\033[0m"
+    echo -e "   \033[1;32mhelp\033[0m                   Shows this help message"
+    echo -e "   \033[1;32mversion\033[0m                Displays hfctl and image version"
+    echo -e "   \033[1;32mself-update\033[0m            Updates hfctl to the latest version"
+    echo -e "   \033[1;32mcreate [project-name]\033[0m  Creates a new Hyperf project"
+    echo -e "   \033[1;32mcomposer [subcommand]\033[0m  Runs composer commands"
+    echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mstop\033[0m                   Stops the Hyperf server"
+    echo -e "   \033[1;32mwatch [port]\033[0m           Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mlogs\033[0m                   Shows the Hyperf container logs"
+    echo -e ""
 }
 
-list() {          # Prints hfctl commands 
-    cat $0 | grep -E '^[a-z_]+\(\)'
+self-update() {
+    HFCTL_DIR=$(dirname $(realpath $0))
+    cd $HFCTL_DIR
+    git pull origin main
 }
 
-CMD=$(echo ${1:-list} | tr '-' '_')
+create() {
+    docker-run -it composer create-project hyperf/hyperf-skeleton:dev-master $1
+    sudo chown -R $UID:$UID $1
+}
+
+composer() {
+    pre-check
+    docker-run -it composer $@
+}
+
+start() {
+    pre-check
+    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php start) > $HFCID
+    logs
+}
+
+watch() {
+    pre-check
+    composer show hyperf/watcher
+    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php server:watch) > $HFCID
+    logs
+}
+
+stop() {
+    pre-check
+    docker stop $(cat $HFCID) && rm $HFCID
+}
+
+logs() {
+    pre-check
+    docker logs -f $(cat $HFCID)
+}
+
+docker-run() {
+    docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+}
+
+pre-check() {
+    if ! [ -f bin/hyperf.php ]; then
+        echo -e "\033[0;31mAre you in a Hyperf project?\033[0m"
+        exit 1
+    fi
+}
+
+CMD=${1:-help}
 ARGS=${@:2}
 $CMD $ARGS
