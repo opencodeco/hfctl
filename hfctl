@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-HFCTL=v0.1.0
+HFCTL=v0.2.0
 IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
 HFCID=/tmp/hfctl.cid
 
@@ -61,7 +61,7 @@ start() {
 watch() {
     pre-check
     composer show hyperf/watcher
-    echo $(bin -dp${1:-9501}:9501 server:watch) > $HFCID
+    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php server:watch) > $HFCID
     logs
 }
 
@@ -77,15 +77,7 @@ restart() {
 
 bin() {
     pre-check
-    docker-run -it composer php bin/hyperf.php $@
-}
-
-cmd() {
-    bin
-}
-
-command() {
-    bin
+    docker-run -it php bin/hyperf.php $@
 }
 
 logs() {
@@ -106,4 +98,5 @@ pre-check() {
 
 CMD=${1:-help}
 ARGS=${@:2}
+if [[ $CMD =~ command|cmd ]]; then CMD=bin; fi
 $CMD $ARGS
