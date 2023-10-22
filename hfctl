@@ -22,9 +22,18 @@ help() {
     echo -e "   \033[1;32mcomposer [subcommand]\033[0m  Runs composer commands"
     echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
     echo -e "   \033[1;32mstop\033[0m                   Stops the Hyperf server"
+    echo -e "   \033[1;32mrestart\033[0m                Restart the Hyperf server"
     echo -e "   \033[1;32mwatch [port]\033[0m           Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mbin | cmd | command\033[0m    Runs Hyperf commands"
     echo -e "   \033[1;32mlogs\033[0m                   Shows the Hyperf container logs"
     echo -e ""
+}
+
+install() {
+    HFCTL_DIR=$(dirname $(realpath $0))
+    sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hfctl
+    sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hf
+    sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hyperf
 }
 
 self-update() {
@@ -52,13 +61,31 @@ start() {
 watch() {
     pre-check
     composer show hyperf/watcher
-    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php server:watch) > $HFCID
+    echo $(bin -dp${1:-9501}:9501 server:watch) > $HFCID
     logs
 }
 
 stop() {
     pre-check
     docker stop $(cat $HFCID) && rm $HFCID
+}
+
+restart() {
+    pre-check
+    docker restart $(cat $HFCID) && rm $HFCID
+}
+
+bin() {
+    pre-check
+    docker-run -it composer php bin/hyperf.php $@
+}
+
+cmd() {
+    bin
+}
+
+command() {
+    bin
 }
 
 logs() {
