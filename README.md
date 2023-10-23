@@ -31,3 +31,7 @@ git pull
 | `hfctl watch`                | Starts the Hyperf server with hyperf/watcher |
 | `hfctl bin or cmd or command`| Runs Hyperf commands |
 | `hfctl logs`                 | Shows the Hyperf container logs |
+
+## Contributing
+
+Please visit [CONTRIBUTING.md](CONTRIBUTING.md).
