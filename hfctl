@@ -15,17 +15,17 @@ help() {
     echo -e "   hfctl <command> [arguments]"
     echo -e ""
     echo -e "\033[1;33mCommands:\033[0m"
-    echo -e "   \033[1;32mhelp\033[0m                   Shows this help message"
-    echo -e "   \033[1;32mversion\033[0m                Displays hfctl and image version"
-    echo -e "   \033[1;32mself-update\033[0m            Updates hfctl to the latest version"
-    echo -e "   \033[1;32mcreate [project-name]\033[0m  Creates a new Hyperf project"
-    echo -e "   \033[1;32mcomposer [subcommand]\033[0m  Runs composer commands"
-    echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mstop\033[0m                   Stops the Hyperf server"
-    echo -e "   \033[1;32mrestart\033[0m                Restart the Hyperf server"
-    echo -e "   \033[1;32mwatch [port]\033[0m           Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mbin | cmd | command\033[0m    Runs Hyperf commands"
-    echo -e "   \033[1;32mlogs\033[0m                   Shows the Hyperf container logs"
+    echo -e "   \033[1;32mhelp\033[0m                           Shows this help message"
+    echo -e "   \033[1;32mversion\033[0m                        Displays hfctl and image version"
+    echo -e "   \033[1;32mself-update\033[0m                    Updates hfctl to the latest version"
+    echo -e "   \033[1;32mcreate <project-name> [-it]\033[0m    Creates a new Hyperf project \033[1;37m(use -it for interactive mode)\033[0m"
+    echo -e "   \033[1;32mcomposer <subcommand>\033[0m          Runs composer commands"
+    echo -e "   \033[1;32mstart [port]\033[0m                   Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mstop\033[0m                           Stops the Hyperf server"
+    echo -e "   \033[1;32mrestart\033[0m                        Restart the Hyperf server"
+    echo -e "   \033[1;32mwatch [port]\033[0m                   Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mbin (cmd or command) <command>\033[0m Runs Hyperf commands"
+    echo -e "   \033[1;32mlogs\033[0m                           Shows the Hyperf container logs"
     echo -e ""
 }
 
@@ -43,7 +43,7 @@ self-update() {
 }
 
 create() {
-    docker-run -it composer create-project hyperf/hyperf-skeleton:dev-master $1
+    docker-run ${2:--i} composer create-project hyperf/hyperf-skeleton:dev-master $1
     sudo chown -R $UID:$UID $1
 }
 
@@ -55,14 +55,14 @@ composer() {
 start() {
     pre-check
     echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php start) > $HFCID
-    logs
 }
 
 watch() {
     pre-check
-    composer show hyperf/watcher
+    if [[ $(composer show hyperf/watcher) == *"\"hyperf/watcher\" not found"* ]]; then
+        docker-run -t composer require --dev hyperf/watcher
+    fi
     echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php server:watch) > $HFCID
-    logs
 }
 
 stop() {
