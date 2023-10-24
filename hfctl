@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -e
 
 HFCTL=v0.3.0
 IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
-HFCID=/tmp/hfctl.cid
+HFCID=runtime/hfctl.cid
 
 version() {
     echo -e "hfctl: \033[1;32m$HFCTL\033[0m"
@@ -24,7 +23,7 @@ help() {
     echo -e "   \033[1;32mstop\033[0m                           Stops the Hyperf server"
     echo -e "   \033[1;32mrestart\033[0m                        Restart the Hyperf server"
     echo -e "   \033[1;32mwatch [port]\033[0m                   Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mbin (cmd or command) <command>\033[0m Runs Hyperf commands"
+    echo -e "   \033[1;32mconsole <command>\033[0m              Runs Hyperf console commands \033[1;37m(php bin/hyperf.php <command>)\033[0m"
     echo -e "   \033[1;32mlogs [-f|--follow]\033[0m             Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
     echo -e ""
 }
@@ -43,13 +42,13 @@ self-update() {
 }
 
 create() {
-    docker-run ${2:--i} composer create-project hyperf/hyperf-skeleton:dev-master $1
+    docker-run ${HFTTY:--it} composer create-project hyperf/hyperf-skeleton:dev-master $1
     sudo chown -R $UID:$UID $1
 }
 
 composer() {
     pre-check
-    docker-run -it composer $@
+    docker-run ${HFTTY:--it} composer $@
 }
 
 start() {
@@ -59,37 +58,37 @@ start() {
         echo -e "\033[0;31mPort $PORT is already in use by another container\033[0m"
         exit 1
     fi
-
-    echo $(docker-run -dp$PORT:9501 php bin/hyperf.php ${2:-start}) > $HFCID
-    echo -e "\033[1;32mServer is running at $PORT\033[0m"
+    echo -e "Container ID:" $(docker-run "-dp$PORT:9501 --cidfile $HFCID" php bin/hyperf.php ${2:-start})
+    echo -e "\033[1;32mHyperf server started at $PORT\033[0m"
     echo -e "http://localhost:$PORT"
 }
 
 watch() {
     pre-check
-    if [[ $(composer show hyperf/watcher) == *"\"hyperf/watcher\" not found"* ]]; then
-        docker-run -t composer require --dev hyperf/watcher
+    if [[ "$(composer show hyperf/watcher 2>&1)" == *"\"hyperf/watcher\" not found"* ]]; then
+        docker-run ${HFTTY:--it} composer require --dev hyperf/watcher
     fi
     start ${1:-9501} server:watch
 }
 
 stop() {
-    pre-check
-    docker stop $(cat $HFCID) && rm $HFCID
+    pre-check cid
+    docker stop $(cat $HFCID)
+    rm $HFCID
 }
 
 restart() {
-    pre-check
-    docker restart $(cat $HFCID) && rm $HFCID
+    pre-check cid
+    echo -e "Container ID:" $(docker restart $(cat $HFCID))
 }
 
-bin() {
+console() {
     pre-check
-    docker-run -it php bin/hyperf.php $@
+    docker-run ${HFTTY:--it} php bin/hyperf.php $@
 }
 
 logs() {
-    pre-check
+    pre-check cid
     docker logs $@ $(cat $HFCID)
 }
 
@@ -102,9 +101,15 @@ pre-check() {
         echo -e "\033[0;31mAre you in a Hyperf project?\033[0m"
         exit 1
     fi
+
+    if [[ $1 == cid ]]; then
+        if ! [ -f $HFCID ]; then
+            echo -e "\033[0;31mThe Hyperf server is not running\033[0m"
+        exit 1
+        fi
+    fi
 }
 
 CMD=${1:-help}
 ARGS=${@:2}
-if [[ $CMD =~ command|cmd ]]; then CMD=bin; fi
 $CMD $ARGS

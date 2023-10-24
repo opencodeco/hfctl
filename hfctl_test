@@ -2,13 +2,13 @@
 
 HFCTL=$(dirname $(realpath $0))/hfctl
 HFDIR=test-project
-HFCID=/tmp/hfctl.cid
+HFCID=runtime/hfctl.cid
 
 function set_up_before_script() {
     if [ -d $HFDIR ]; then
         sudo rm -rf $HFDIR
     fi
-    $HFCTL create $HFDIR
+    $HFCTL create $HFDIR &> /dev/null
 }
 
 function tear_down_after_script() {
@@ -34,14 +34,19 @@ function test_should_pre_check_pass_if_in_project_directory() {
     assert_empty "$($HFCTL pre-check)"
 }
 
+function test_should_pre_check_fail_if_there_is_no_cid() {
+    cd $HFDIR
+    assert_contains "Hyperf server is not running" "$($HFCTL pre-check cid)"
+}
+
 function test_should_composer_commands_be_available() {
     cd $HFDIR
-    assert_contains "composer.json is valid" "$($HFCTL composer validate)"
+    assert_contains "Display help for a command" "$($HFCTL composer help)"
 }
 
 function test_should_start_show_logs_and_stop() {
     cd $HFDIR
-    assert_contains "Server is running at 9501" "$($HFCTL start)"
+    assert_contains "Hyperf server started at 9501" "$($HFCTL start)"
     sleep 2
     assert_file_exists $HFCID
     assert_contains "[INFO] HTTP Server listening at 0.0.0.0:9501" "$($HFCTL logs)"
@@ -52,7 +57,7 @@ function test_should_start_show_logs_and_stop() {
 
 function test_should_install_watcher_and_watch_for_changes() {
     cd $HFDIR
-    assert_contains "Running composer update hyperf/watcher" "$($HFCTL watch)"
+    assert_contains "Hyperf server started at 9501" "$($HFCTL watch 2> /dev/null)"
     sleep 2
     assert_file_exists $HFCID
     assert_contains "Hot reload watcher for Hyperf" "$($HFCTL composer show hyperf/watcher)"
@@ -61,13 +66,12 @@ function test_should_install_watcher_and_watch_for_changes() {
     assert_file_not_exists $HFCID
 }
 
-function test_should_run_hyperf_commands() {
+function test_should_run_hyperf_console_commands() {
     cd $HFDIR
-    assert_contains "Console Tool" "$($HFCTL bin)"
-    assert_contains "Console Tool" "$($HFCTL cmd)"
-    assert_contains "Console Tool" "$($HFCTL command)"
+    assert_contains "Console Tool" "$($HFCTL console)"
 }
 
-if [[ $0 == "./test" ]]; then 
-    ./bashunit ./test
+if [[ $0 == "./hfctl_test" ]]; then 
+    export HFTTY="-lno-tty" 
+    ./bashunit ./hfctl_test $@
 fi
