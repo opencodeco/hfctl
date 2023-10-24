@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-HFCTL=v0.2.0
+HFCTL=v0.3.0
 IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
 HFCID=/tmp/hfctl.cid
 
@@ -25,7 +25,7 @@ help() {
     echo -e "   \033[1;32mrestart\033[0m                        Restart the Hyperf server"
     echo -e "   \033[1;32mwatch [port]\033[0m                   Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
     echo -e "   \033[1;32mbin (cmd or command) <command>\033[0m Runs Hyperf commands"
-    echo -e "   \033[1;32mlogs\033[0m                           Shows the Hyperf container logs"
+    echo -e "   \033[1;32mlogs [-f|--follow]\033[0m             Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
     echo -e ""
 }
 
@@ -54,7 +54,15 @@ composer() {
 
 start() {
     pre-check
-    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php start) > $HFCID
+    PORT=${1:-9501}
+    if [ -n "$(docker ps --format 'table {{.Ports}}' | grep $PORT)" ]; then
+        echo -e "\033[0;31mPort $PORT is already in use by another container\033[0m"
+        exit 1
+    fi
+
+    echo $(docker-run -dp$PORT:9501 php bin/hyperf.php ${2:-start}) > $HFCID
+    echo -e "\033[1;32mServer is running at $PORT\033[0m"
+    echo -e "http://localhost:$PORT"
 }
 
 watch() {
@@ -62,7 +70,7 @@ watch() {
     if [[ $(composer show hyperf/watcher) == *"\"hyperf/watcher\" not found"* ]]; then
         docker-run -t composer require --dev hyperf/watcher
     fi
-    echo $(docker-run -dp${1:-9501}:9501 php bin/hyperf.php server:watch) > $HFCID
+    start ${1:-9501} server:watch
 }
 
 stop() {
@@ -82,7 +90,7 @@ bin() {
 
 logs() {
     pre-check
-    docker logs -f $(cat $HFCID)
+    docker logs $@ $(cat $HFCID)
 }
 
 docker-run() {
