@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+HFCTL=$(dirname $(realpath $0))/hfctl
+HFDIR=test-project
+HFCID=runtime/hfctl.cid
+
+function set_up_before_script() {
+    if [ -d $HFDIR ]; then
+        sudo rm -rf $HFDIR
+    fi
+    $HFCTL create $HFDIR &> /dev/null
+}
+
+function tear_down_after_script() {
+    sudo rm -rf $HFDIR
+}
+
+function test_should_display_help_information() {
+    assert_contains "Shows this help message" "$($HFCTL)"
+    assert_contains "Shows this help message" "$($HFCTL help)"
+}
+
+function test_should_test_project_been_created() {
+    assert_file_exists $HFDIR/vendor/autoload.php
+}
+
+function test_should_pre_check_fail_if_not_in_project_directory() {
+    assert_contains "Are you in a Hyperf project?" "$($HFCTL pre-check)"
+    assert_exit_code 1 "$($HFCTL pre-check)"
+}
+
+function test_should_pre_check_pass_if_in_project_directory() {
+    cd $HFDIR
+    assert_empty "$($HFCTL pre-check)"
+}
+
+function test_should_pre_check_fail_if_there_is_no_cid() {
+    cd $HFDIR
+    assert_contains "Hyperf server is not running" "$($HFCTL pre-check cid)"
+}
+
+function test_should_composer_commands_be_available() {
+    cd $HFDIR
+    assert_contains "Display help for a command" "$($HFCTL composer help)"
+}
+
+function test_should_start_show_logs_and_stop() {
+    cd $HFDIR
+    assert_contains "Hyperf server started at 9501" "$($HFCTL start)"
+    sleep 2
+    assert_file_exists $HFCID
+    assert_contains "[INFO] HTTP Server listening at 0.0.0.0:9501" "$($HFCTL logs)"
+    assert_equals "{\"method\":\"GET\",\"message\":\"Hello Hyperf.\"}" "$(curl -s http://localhost:9501)"
+    assert_equals "$(cat $HFCID)" "$($HFCTL stop)"
+    assert_file_not_exists $HFCID
+}
+
+function test_should_install_watcher_and_watch_for_changes() {
+    cd $HFDIR
+    assert_contains "Hyperf server started at 9501" "$($HFCTL watch 2> /dev/null)"
+    sleep 2
+    assert_file_exists $HFCID
+    assert_contains "Hot reload watcher for Hyperf" "$($HFCTL composer show hyperf/watcher)"
+    assert_equals "{\"method\":\"GET\",\"message\":\"Hello Hyperf.\"}" "$(curl -s http://localhost:9501)"
+    assert_equals "$(cat $HFCID)" "$($HFCTL stop)"
+    assert_file_not_exists $HFCID
+}
+
+function test_should_run_hyperf_console_commands() {
+    cd $HFDIR
+    assert_contains "Console Tool" "$($HFCTL console)"
+}
+
+if [[ $0 == "./hfctl_test" ]]; then 
+    export HFTTY="-lno-tty" 
+    ./bashunit ./hfctl_test $@
+fi

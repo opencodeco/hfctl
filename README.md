@@ -20,6 +20,7 @@ git pull
 
 | Command | Description |
 | --- | --- |
+
 | `hfctl help`                      | Shows this help message |
 | `hfctl version`                   | Displays hfctl and image version |
 | `hfctl self-update`               | Updates hfctl to the latest version |
@@ -31,3 +32,7 @@ git pull
 | `hfctl watch`                     | Starts the Hyperf server with hyperf/watcher |
 | `hfctl bin` (`cmd` or `command`)  | Runs Hyperf commands (i.e.: `php bin/hyperf.php`) |
 | `hfctl logs`                      | Shows the Hyperf container logs |
+
+## Contributing
+
+Please visit [CONTRIBUTING.md](CONTRIBUTING.md).
