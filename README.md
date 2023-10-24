@@ -16,23 +16,27 @@ cd ~/.hfctl
 git pull
 ```
 
-### Usage
+## Usage
+```shell
+hfctl <command> [arguments]
+```
 
-| Command | Description |
+### Commands
+| Name | Description |
 | --- | --- |
-
-| `hfctl help`                      | Shows this help message |
-| `hfctl version`                   | Displays hfctl and image version |
-| `hfctl self-update`               | Updates hfctl to the latest version |
-| `hfctl create`                    | Creates a new Hyperf project |
-| `hfctl composer`                  | Runs composer commands |
-| `hfctl start`                     | Starts the Hyperf server |
-| `hfctl stop`                      | Stops the Hyperf server |
-| `hfctl restart`                   | Restart the Hyperf server |
-| `hfctl watch`                     | Starts the Hyperf server with hyperf/watcher |
-| `hfctl bin` (`cmd` or `command`)  | Runs Hyperf commands (i.e.: `php bin/hyperf.php`) |
-| `hfctl logs`                      | Shows the Hyperf container logs |
+| `help`                  | Shows this help message |
+| `version`               | Displays hfctl and image version |
+| `self-update`           | Updates hfctl to the latest version |
+| `create <project-name>` | Creates a new Hyperf project |
+| `composer <subcommand>` | Runs composer commands |
+| `console <command>`     | Runs Hyperf console commands (`php bin/hyperf.php <command>`) |
+| `start [port]`          | Starts the Hyperf server (default port `9501`) |
+| `stop`                  | Stops the Hyperf server |
+| `restart`               | Restart the Hyperf server |
+| `watch [port]`          | Starts the Hyperf watcher (default port `9501`) |
+| `up`                    | Runs Docker Compose up |
+| `down`                  | Runs Docker Compose down |
+| `logs [-f\|--follow]`   | Shows the Hyperf container logs (use `-f` or `--follow` to follow logs) |
 
 ## Contributing
-
 Please visit [CONTRIBUTING.md](CONTRIBUTING.md).
