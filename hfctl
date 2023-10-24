@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HFCTL=v0.3.0
+HFCTL=v0.4.0
 IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
 HFCID=runtime/hfctl.cid
 
@@ -14,17 +14,22 @@ help() {
     echo -e "   hfctl <command> [arguments]"
     echo -e ""
     echo -e "\033[1;33mCommands:\033[0m"
-    echo -e "   \033[1;32mhelp\033[0m                           Shows this help message"
-    echo -e "   \033[1;32mversion\033[0m                        Displays hfctl and image version"
-    echo -e "   \033[1;32mself-update\033[0m                    Updates hfctl to the latest version"
-    echo -e "   \033[1;32mcreate <project-name> [-it]\033[0m    Creates a new Hyperf project \033[1;37m(use -it for interactive mode)\033[0m"
-    echo -e "   \033[1;32mcomposer <subcommand>\033[0m          Runs composer commands"
-    echo -e "   \033[1;32mstart [port]\033[0m                   Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mstop\033[0m                           Stops the Hyperf server"
-    echo -e "   \033[1;32mrestart\033[0m                        Restart the Hyperf server"
-    echo -e "   \033[1;32mwatch [port]\033[0m                   Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mconsole <command>\033[0m              Runs Hyperf console commands \033[1;37m(php bin/hyperf.php <command>)\033[0m"
-    echo -e "   \033[1;32mlogs [-f|--follow]\033[0m             Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
+    echo -e "   \033[1;32mhelp\033[0m                   Shows this help message"
+    echo -e "   \033[1;32mversion\033[0m                Displays hfctl and image version"
+    echo -e "   \033[1;32mself-update\033[0m            Updates hfctl to the latest version"
+    echo -e "   \033[1;32mcreate <project-name>         Creates a new Hyperf project"
+    echo -e "   \033[1;32mcomposer <subcommand>\033[0m  Runs composer commands"
+    echo -e "   \033[1;32mconsole <command>\033[0m      Runs Hyperf console commands \033[1;37m(php bin/hyperf.php <command>)\033[0m"
+    echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mstop\033[0m                   Stops the Hyperf server"
+    echo -e "   \033[1;32mrestart\033[0m                Restart the Hyperf server"
+    echo -e "   \033[1;32mwatch [port]\033[0m           Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
+    echo -e "   \033[1;32mup\033[0m                     Runs Docker Compose up"
+    echo -e "   \033[1;32mdown\033[0m                   Runs Docker Compose down"
+    echo -e "   \033[1;32mlogs [-f|--follow]\033[0m     Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
+    echo -e "   \033[1;32mtest\033[0m                   Runs PHPUnit tests"
+    echo -e "   \033[1;32mlint\033[0m                   Runs PHP Coding Standards Fixer"
+    echo -e "   \033[1;32manalyse [-l<level>]\033[0m    Runs PHPStan analyses \033[1;37m(default level 5)\033[0m"
     echo -e ""
 }
 
@@ -88,12 +93,41 @@ console() {
 }
 
 logs() {
-    pre-check cid
-    docker logs $@ $(cat $HFCID)
+    DC=$(docker compose ps --format 'json {{.Name}}')
+    if [[ -n $DC ]]; then
+        docker compose logs $@
+    else
+        pre-check cid
+        docker logs $@ $(cat $HFCID)
+    fi
+}
+
+up() {
+    docker compose up -d
+}
+
+down() {
+    docker compose down --remove-orphans
+}
+
+test() {
+    docker-run ${HFTTY:--it} php vendor/bin/co-phpunit --prepend test/bootstrap.php $@
+}
+
+lint() {
+    docker-run ${HFTTY:--it} php vendor/bin/php-cs-fixer fix $@
+}
+
+analyse() {
+    docker-run ${HFTTY:--it} php vendor/bin/phpstan analyse ${@:--l5} app
 }
 
 docker-run() {
     docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+}
+
+ps() {
+    docker ps
 }
 
 pre-check() {
