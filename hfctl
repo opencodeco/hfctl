@@ -123,7 +123,7 @@ analyse() {
 }
 
 docker-run() {
-    docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+    docker run --user $UID --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
 }
 
 ps() {

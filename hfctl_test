@@ -6,13 +6,13 @@ HFCID=runtime/hfctl.cid
 
 function set_up_before_script() {
     if [ -d $HFDIR ]; then
-        sudo rm -rf $HFDIR
+        rm -rf $HFDIR
     fi
     $HFCTL create $HFDIR &> /dev/null
 }
 
 function tear_down_after_script() {
-    sudo rm -rf $HFDIR
+    rm -rf $HFDIR
 }
 
 function test_should_display_help_information() {
