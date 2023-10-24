@@ -27,6 +27,9 @@ help() {
     echo -e "   \033[1;32mup\033[0m                     Runs Docker Compose up"
     echo -e "   \033[1;32mdown\033[0m                   Runs Docker Compose down"
     echo -e "   \033[1;32mlogs [-f|--follow]\033[0m     Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
+    echo -e "   \033[1;32mtest\033[0m                   Runs PHPUnit tests"
+    echo -e "   \033[1;32mlint\033[0m                   Runs PHP Coding Standards Fixer"
+    echo -e "   \033[1;32manalyse [-l<level>]\033[0m    Runs PHPStan analyses \033[1;37m(default level 5)\033[0m"
     echo -e ""
 }
 

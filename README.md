@@ -25,8 +25,8 @@ hfctl <command> [arguments]
 | Name | Description |
 | --- | --- |
 | `help`                  | Shows this help message |
-| `version`               | Displays hfctl and image version |
-| `self-update`           | Updates hfctl to the latest version |
+| `version`               | Displays `hfctl` and image version |
+| `self-update`           | Updates `hfctl` to the latest version |
 | `create <project-name>` | Creates a new Hyperf project |
 | `composer <subcommand>` | Runs composer commands |
 | `console <command>`     | Runs Hyperf console commands (`php bin/hyperf.php <command>`) |
@@ -37,6 +37,9 @@ hfctl <command> [arguments]
 | `up`                    | Runs Docker Compose up |
 | `down`                  | Runs Docker Compose down |
 | `logs [-f\|--follow]`   | Shows the Hyperf container logs (use `-f` or `--follow` to follow logs) |
+| `test`                  | Runs PHPUnit tests |
+| `lint`                  | Runs PHP Coding Standards Fixer |
+| `analyse [-l<level>]`   | Runs PHPStan analyses (default level `5`) |
 
 ## Contributing
 Please visit [CONTRIBUTING.md](CONTRIBUTING.md).
