@@ -4,7 +4,7 @@
 ## Getting started
 
 ### Installation
-Just clone it to your favorite location and `make install`:
+Just clone it to your favorite location and run the `install` sub-command:
 ```shell
 git clone https://github.com/opencodeco/hfctl.git ~/.hfctl && ~/.hfctl/hfctl install
 ```
@@ -12,7 +12,7 @@ git clone https://github.com/opencodeco/hfctl.git ~/.hfctl && ~/.hfctl/hfctl ins
 #### Updates
 Then to update, you can just `git pull` or `hfctl self-update`:
 ```shell
-cd ~/hfctl
+cd ~/.hfctl
 git pull
 ```
 
@@ -20,17 +20,18 @@ git pull
 
 | Command | Description |
 | --- | --- |
-| `hfctl help`                 | Shows this help message |
-| `hfctl version`              | Displays hfctl and image version |
-| `hfctl self-update`          | Updates hfctl to the latest version |
-| `hfctl create`               | Creates a new Hyperf project |
-| `hfctl composer`             | Runs composer commands |
-| `hfctl start`                | Starts the Hyperf server |
-| `hfctl stop`                 | Stops the Hyperf server |
-| `hfctl restart`              | Restart the Hyperf server |
-| `hfctl watch`                | Starts the Hyperf server with hyperf/watcher |
-| `hfctl bin or cmd or command`| Runs Hyperf commands |
-| `hfctl logs`                 | Shows the Hyperf container logs |
+
+| `hfctl help`                      | Shows this help message |
+| `hfctl version`                   | Displays hfctl and image version |
+| `hfctl self-update`               | Updates hfctl to the latest version |
+| `hfctl create`                    | Creates a new Hyperf project |
+| `hfctl composer`                  | Runs composer commands |
+| `hfctl start`                     | Starts the Hyperf server |
+| `hfctl stop`                      | Stops the Hyperf server |
+| `hfctl restart`                   | Restart the Hyperf server |
+| `hfctl watch`                     | Starts the Hyperf server with hyperf/watcher |
+| `hfctl bin` (`cmd` or `command`)  | Runs Hyperf commands (i.e.: `php bin/hyperf.php`) |
+| `hfctl logs`                      | Shows the Hyperf container logs |
 
 ## Contributing
 
