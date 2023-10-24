@@ -71,6 +71,21 @@ function test_should_run_hyperf_console_commands() {
     assert_contains "Console Tool" "$($HFCTL console)"
 }
 
+function test_should_run_test_command() {
+    cd $HFDIR
+    assert_contains "OK (1 test, 2 assertions)" "$($HFCTL test)"
+}
+
+function test_should_run_lint_command() {
+    cd $HFDIR
+    assert_contains "Fixed 8 of 27 files" "$($HFCTL lint 2> /dev/null)"
+}
+
+function test_should_run_analyse_command() {
+    cd $HFDIR
+    assert_contains "No errors" "$($HFCTL analyse 2> /dev/null)"
+}
+
 if [[ $0 == "./hfctl_test" ]]; then 
     export HFTTY="-lno-tty" 
     ./bashunit ./hfctl_test $@
