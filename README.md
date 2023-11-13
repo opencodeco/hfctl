@@ -1,4 +1,4 @@
-# hfctl
+# hfctl [![.github/workflows/ci.yml](https://github.com/opencodeco/hfctl/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/opencodeco/hfctl/actions/workflows/ci.yml)
 👩‍💻 Command line interface to help with the creation and maintenance of Hyperf applications in a Docker-based development environment.
 
 ## Getting started
