@@ -17,7 +17,7 @@ help() {
     echo -e "   \033[1;32mhelp\033[0m                   Shows this help message"
     echo -e "   \033[1;32mversion\033[0m                Displays hfctl and image version"
     echo -e "   \033[1;32mself-update\033[0m            Updates hfctl to the latest version"
-    echo -e "   \033[1;32mcreate <project-name>         Creates a new Hyperf project"
+    echo -e "   \033[1;32mcreate <project-name>\033[0m  Creates a new Hyperf project"
     echo -e "   \033[1;32mcomposer <subcommand>\033[0m  Runs composer commands"
     echo -e "   \033[1;32mconsole <command>\033[0m      Runs Hyperf console commands \033[1;37m(php bin/hyperf.php <command>)\033[0m"
     echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
