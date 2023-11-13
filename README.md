@@ -38,6 +38,7 @@ hfctl <command> [arguments]
 | `down`                  | Runs Docker Compose down |
 | `logs [-f\|--follow]`   | Shows the Hyperf container logs (use `-f` or `--follow` to follow logs) |
 | `test`                  | Runs PHPUnit tests |
+| `coverage [port]`       | Runs PHPUnit tests with HTML coverage (default port `8090`) |
 | `lint`                  | Runs PHP Coding Standards Fixer |
 | `analyse [-l<level>]`   | Runs PHPStan analyses (default level `5`) |
 
