@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-HFCTL=v0.4.0
-IMAGE=hyperf/hyperf:8.2-alpine-v3.18-swoole-v5.1
+HFCTL=v0.5.0
+IMAGE=opencodeco/hfctl:$HFCTL
 HFCID=runtime/hfctl.cid
 
 version() {
@@ -28,6 +28,7 @@ help() {
     echo -e "   \033[1;32mdown\033[0m                   Runs Docker Compose down"
     echo -e "   \033[1;32mlogs [-f|--follow]\033[0m     Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
     echo -e "   \033[1;32mtest\033[0m                   Runs PHPUnit tests"
+    echo -e "   \033[1;32mcoverage [port]\033[0m        Runs PHPUnit tests with HTML coverage \033[1;37m(default port 8090)\033[0m"
     echo -e "   \033[1;32mlint\033[0m                   Runs PHP Coding Standards Fixer"
     echo -e "   \033[1;32manalyse [-l<level>]\033[0m    Runs PHPStan analyses \033[1;37m(default level 5)\033[0m"
     echo -e ""
@@ -114,6 +115,12 @@ test() {
     docker-run ${HFTTY:--it} php vendor/bin/co-phpunit --prepend test/bootstrap.php $@
 }
 
+coverage() {
+    PORT=${1:-8090}
+    test --coverage-html runtime/coverage
+    docker-run "-p$PORT:$PORT" php -S 0.0.0.0:$PORT -t runtime/coverage
+}
+
 lint() {
     docker-run ${HFTTY:--it} php vendor/bin/php-cs-fixer fix $@
 }
@@ -128,6 +135,18 @@ docker-run() {
 
 ps() {
     docker ps
+}
+
+build() {
+    docker build -t $IMAGE .
+}
+
+push() {
+    docker push $IMAGE
+}
+
+sh() {
+    docker-run ${HFTTY:--it} sh
 }
 
 pre-check() {
