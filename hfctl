@@ -167,6 +167,10 @@ sh() {
     docker-run ${HFTTY:--it} sh
 }
 
+exec() {
+    docker-run ${HFTTY:--it} $@
+}
+
 pre-check() {
     if ! [ -f bin/hyperf.php ]; then
         echo -e "\033[0;31mAre you in a Hyperf project?\033[0m"
