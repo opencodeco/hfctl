@@ -22,25 +22,34 @@ hfctl <command> [arguments]
 ```
 
 ### Commands
-| Name | Description |
+| Command | Description |
 | --- | --- |
-| `help`                  | Shows this help message |
-| `version`               | Displays `hfctl` and image version |
-| `self-update`           | Updates `hfctl` to the latest version |
-| `create <project-name>` | Creates a new Hyperf project |
-| `composer <subcommand>` | Runs composer commands |
-| `console <command>`     | Runs Hyperf console commands (`php bin/hyperf.php <command>`) |
-| `start [port]`          | Starts the Hyperf server (default port `9501`) |
-| `stop`                  | Stops the Hyperf server |
-| `restart`               | Restart the Hyperf server |
-| `watch [port]`          | Starts the Hyperf watcher (default port `9501`) |
-| `up`                    | Runs Docker Compose up |
-| `down`                  | Runs Docker Compose down |
-| `logs [-f\|--follow]`   | Shows the Hyperf container logs (use `-f` or `--follow` to follow logs) |
-| `test`                  | Runs PHPUnit tests |
-| `coverage [port]`       | Runs PHPUnit tests with HTML coverage (default port `8090`) |
-| `lint`                  | Runs PHP Coding Standards Fixer |
-| `analyse [-l<level>]`   | Runs PHPStan analyses (default level `5`) |
+| `analyse` | Runs PHPStan analyses |
+| `build` | Builds the Hyperf image |
+| `composer` | Runs Composer commands |
+| `console` | Runs Hyperf console commands (`php bin/hyperf.php <command>`) |
+| `coverage` | Runs PHPUnit tests with HTML coverage |
+| `create` | Creates a new Hyperf project |
+| `down` | Runs Docker Compose down |
+| `exec` | Runs a command in the Hyperf container |
+| `help` | Shows this help message |
+| `init` | Initializes `.hfctl` config file |
+| `install` | Installs `hfctl`, `hf` and `hyperf` in your system |
+| `lint` | Runs PHP Coding Standards Fixer |
+| `logs` | Shows the Hyperf container logs (use `-f` or `--follow` to follow logs) |
+| `pre-check` | Checks if the current directory is a Hyperf project |
+| `push` | Pushes the Hyperf image to Docker Hub |
+| `restart` | Restarts the Hyperf server |
+| `self-update` | Updates `hfctl` to the latest version |
+| `sh` | Runs a shell in the Hyperf container |
+| `sonar` | Runs SonarQube analyses |
+| `start` | Starts the Hyperf server (default port is 9501) |
+| `stop` | Stops the Hyperf server |
+| `test` | Runs PHPUnit tests |
+| `up` | Runs Docker Compose up |
+| `version` | Displays image tag |
+| `watch` | Starts the Hyperf watcher |
+<!-- Commands -->
 
 ## Contributing
 Please visit [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1,58 +1,31 @@
 #!/usr/bin/env bash
-
 PHP=8.2
 SWOOLE=5.1
 HFCID=runtime/hfctl.cid
 
-if [ -f .hfctl ]; then
+if [ -e .hfctl ] && [ -s .hfctl ]; then
     export $(cat .hfctl | sed 's/#.*//g' | xargs)
 fi
-
 IMAGE=${IMAGE:-opencodeco/hfctl:php$PHP-swoole$SWOOLE}
 
-version() {
+version() { # Displays image tag
     echo -e "image: \033[1;32m$IMAGE\033[0m"
 }
 
-help() {
-    echo -e "\033[1;33mUsage:\033[0m"
-    echo -e "   hfctl <command> [arguments]"
-    echo -e ""
-    echo -e "\033[1;33mCommands:\033[0m"
-    echo -e "   \033[1;32mhelp\033[0m                   Shows this help message"
-    echo -e "   \033[1;32mversion\033[0m                Displays hfctl and image version"
-    echo -e "   \033[1;32mself-update\033[0m            Updates hfctl to the latest version"
-    echo -e "   \033[1;32mcreate <project-name>\033[0m  Creates a new Hyperf project"
-    echo -e "   \033[1;32mcomposer <subcommand>\033[0m  Runs composer commands"
-    echo -e "   \033[1;32mconsole <command>\033[0m      Runs Hyperf console commands \033[1;37m(php bin/hyperf.php <command>)\033[0m"
-    echo -e "   \033[1;32mstart [port]\033[0m           Starts the Hyperf server \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mstop\033[0m                   Stops the Hyperf server"
-    echo -e "   \033[1;32mrestart\033[0m                Restart the Hyperf server"
-    echo -e "   \033[1;32mwatch [port]\033[0m           Starts the Hyperf watcher \033[1;37m(default port 9501)\033[0m"
-    echo -e "   \033[1;32mup\033[0m                     Runs Docker Compose up"
-    echo -e "   \033[1;32mdown\033[0m                   Runs Docker Compose down"
-    echo -e "   \033[1;32mlogs [-f|--follow]\033[0m     Shows the Hyperf container logs \033[1;37m(use -f or --follow to follow logs)\033[0m"
-    echo -e "   \033[1;32mtest\033[0m                   Runs PHPUnit tests"
-    echo -e "   \033[1;32mcoverage [port]\033[0m        Runs PHPUnit tests with HTML coverage \033[1;37m(default port 8090)\033[0m"
-    echo -e "   \033[1;32mlint\033[0m                   Runs PHP Coding Standards Fixer"
-    echo -e "   \033[1;32manalyse [-l<level>]\033[0m    Runs PHPStan analyses \033[1;37m(default level 5)\033[0m"
-    echo -e ""
-}
-
-install() {
+install() { # Installs `hfctl`, `hf` and `hyperf` in your system
     HFCTL_DIR=$(dirname $(realpath $0))
     sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hfctl
     sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hf
     sudo ln -sf "${HFCTL_DIR}/hfctl" /usr/local/bin/hyperf
 }
 
-self-update() {
+self-update() { # Updates `hfctl` to the latest version
     HFCTL_DIR=$(dirname $(realpath $0))
     cd $HFCTL_DIR
     git pull origin main
 }
 
-init() {
+init() { # Initializes `.hfctl` config file
     if [ -f .hfctl ]; then
         echo -e "\033[0;31m.hfctl file already exists\033[0m"
         exit 1
@@ -60,53 +33,52 @@ init() {
     echo "IMAGE=${PWD##*/}" > .hfctl
 }
 
-create() {
-    docker-run ${HFTTY:--it} composer create-project hyperf/hyperf-skeleton:dev-master $1
+create() { # Creates a new Hyperf project
+    _docker-run ${HFTTY:--it} composer create-project hyperf/hyperf-skeleton:dev-master $1
     sudo chown -R $UID:$UID $1
 }
 
-composer() {
-    pre-check
-    docker-run ${HFTTY:--it} composer $@
+composer() { # Runs Composer commands
+    _docker-run ${HFTTY:--it} composer $@
 }
 
-start() {
+start() { # Starts the Hyperf server (default port is 9501)
     pre-check
     PORT=${1:-9501}
     if [ -n "$(docker ps --format 'table {{.Ports}}' | grep $PORT)" ]; then
         echo -e "\033[0;31mPort $PORT is already in use by another container\033[0m"
         exit 1
     fi
-    echo -e "Container ID:" $(docker-run "-dp$PORT:9501 --cidfile $HFCID" php bin/hyperf.php ${2:-start})
+    echo -e "Container ID:" $(_docker-run "-dp$PORT:9501 --cidfile $HFCID" php bin/hyperf.php ${2:-start})
     echo -e "\033[1;32mHyperf server started at $PORT\033[0m"
     echo -e "http://localhost:$PORT"
 }
 
-watch() {
+watch() { # Starts the Hyperf watcher
     pre-check
     if [[ "$(composer show hyperf/watcher 2>&1)" == *"\"hyperf/watcher\" not found"* ]]; then
-        docker-run ${HFTTY:--it} composer require --dev hyperf/watcher
+       _docker-run ${HFTTY:--it} composer require --dev hyperf/watcher
     fi
     start ${1:-9501} server:watch
 }
 
-stop() {
+stop() { # Stops the Hyperf server
     pre-check cid
     docker stop $(cat $HFCID)
     rm $HFCID
 }
 
-restart() {
+restart() { # Restarts the Hyperf server
     pre-check cid
     echo -e "Container ID:" $(docker restart $(cat $HFCID))
 }
 
-console() {
+console() { # Runs Hyperf console commands (`php bin/hyperf.php <command>`)
     pre-check
-    docker-run ${HFTTY:--it} php bin/hyperf.php $@
+   _docker-run ${HFTTY:--it} php bin/hyperf.php $@
 }
 
-logs() {
+logs() { # Shows the Hyperf container logs (use `-f` or `--follow` to follow logs)
     DC=$(docker compose ps --format 'json {{.Name}}')
     if [[ -n $DC ]]; then
         docker compose logs $@
@@ -116,37 +88,35 @@ logs() {
     fi
 }
 
-up() {
+up() { # Runs Docker Compose up
     docker compose up -d
 }
 
-down() {
+down() { # Runs Docker Compose down
     docker compose down --remove-orphans
 }
 
-test() {
-    docker-run ${HFTTY:--it} php vendor/bin/co-phpunit --prepend test/bootstrap.php $@
+test() { # Runs PHPUnit tests
+   _docker-run ${HFTTY:--it} php vendor/bin/co-phpunit --prepend test/bootstrap.php $@
 }
 
-coverage() {
+coverage() { # Runs PHPUnit tests with HTML coverage
     PORT=${1:-8090}
     test --coverage-html runtime/coverage
-    docker-run "-p$PORT:$PORT" php -S 0.0.0.0:$PORT -t runtime/coverage
+   _docker-run "-p$PORT:$PORT" php -S 0.0.0.0:$PORT -t runtime/coverage
 }
 
-lint() {
-    docker-run ${HFTTY:--it} php vendor/bin/php-cs-fixer fix $@
+lint() { # Runs PHP Coding Standards Fixer
+   _docker-run ${HFTTY:--it} php vendor/bin/php-cs-fixer fix $@
 }
 
-analyse() {
-    docker-run ${HFTTY:--it} php vendor/bin/phpstan analyse ${@:--l5} app
+analyse() { # Runs PHPStan analyses
+   _docker-run ${HFTTY:--it} php vendor/bin/phpstan analyse ${@:--l5} app
 }
 
-docker-run() {
-    docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
-}
 
-sonar() {
+
+sonar() { # Runs SonarQube analyses
     if [ -z "$SONAR_TOKEN" ]; then
         echo -e "\033[0;31mSONAR_TOKEN is not set\033[0m"
         exit 1
@@ -154,11 +124,7 @@ sonar() {
     docker run --rm -v ./:/usr/src -e SONAR_TOKEN="$SONAR_TOKEN" sonarsource/sonar-scanner-cli -Dsonar.branch.name=$(git branch --show-current) $@
 }
 
-ps() {
-    docker ps
-}
-
-build() {
+build() { # Builds the Hyperf image
     docker build \
     --build-arg PHP=$PHP \
     --build-arg SWOOLE=$SWOOLE \
@@ -167,19 +133,19 @@ build() {
     -t $IMAGE .
 }
 
-push() {
+push() { # Pushes the Hyperf image to Docker Hub
     docker push $IMAGE
 }
 
-sh() {
-    docker-run ${HFTTY:--it} sh
+sh() { # Runs a shell in the Hyperf container
+   _docker-run "${HFTTY:--it} $@" sh
 }
 
-exec() {
-    docker-run ${HFTTY:--it} $@
+exec() { # Runs a command in the Hyperf container
+   _docker-run ${HFTTY:--it} $@
 }
 
-pre-check() {
+pre-check() { # Checks if the current directory is a Hyperf project
     if ! [ -f bin/hyperf.php ]; then
         echo -e "\033[0;31mAre you in a Hyperf project?\033[0m"
         exit 1
@@ -191,6 +157,59 @@ pre-check() {
         exit 1
         fi
     fi
+}
+
+_docker-run() {
+    docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+}
+
+help() { # Shows this help message
+    echo -e "                                                "
+    echo -e "                                                "
+    echo -e "  ,---,                         ___     ,--,    "
+    echo -e ",--.' |      .--.,            ,--.'|_ ,--.'|    "
+    echo -e "|  |  :    ,--.'  \           |  | :,'|  | :    "
+    echo -e ":  :  :    |  | /\/           :  : ' ::  : '    "
+    echo -e ":  |  |,--.:  : :     ,---. .;__,'  / |  ' |    "
+    echo -e "|  :  '   |:  | |-,  /     \|  |   |  '  | |    "
+    echo -e "|  |   /' :|  : :/| /    / ':__,'| :  |  | :    "
+    echo -e "'  :  | | ||  |  .'.    ' /   '  : |__'  : |__  "
+    echo -e "|  |  ' | :'  : '  '   ; :__  |  | '.'|  | '.'| "
+    echo -e "|  :  :_:,'|  | |  '   | '.'| ;  :    ;  :    ; "
+    echo -e "|  | ,'    |  : \  |   :    : |  ,   /|  ,   /  "
+    echo -e "\`--''      |  |,'   \   \  /   ---\`-'  ---\`-'"
+    echo -e "           \`--'      \`----'                   "
+    echo -e "                                                "
+    echo -e $(version)
+    echo -e ""
+    echo -e "\033[1;33mUsage:\033[0m"
+    echo -e "  hfctl <command> [arguments]"
+    echo -e ""
+    echo -e "\033[1;33mCommands:\033[0m"
+    for fn in $(declare -F | awk '{print $3}'); do
+        if [[ $fn == _* ]]; then continue; fi
+        echo -e "  \033[1;32m$fn\033[0m\t"$(grep -E "^$fn\(\)\s\{\s+\#" $0 | sed 's/^.*#//g')
+    done | column -t -s $'\t'
+    echo -e ""
+}
+
+_readme() {
+    HEADER="| Command | Description |\n| --- | --- |"
+    COMMANDS=$(
+        for fn in $(declare -F | awk '{print $3}'); do
+            if [[ $fn == _* ]]; then continue; fi
+            echo -n "| \`$fn\` |" $(grep -E "^$fn\(\)\s\{\s+\#" $0 | sed 's/^.*#//g') "|\n"
+        done
+    )
+    START="### Commands"
+    END="<!-- Commands -->"
+
+    awk -v start="$START" -v end="$END" -v table="$HEADER\n$COMMANDS$END" '
+        $0 ~ start { found = 1; print; next }
+        found && $0 ~ end { print table; found = 0; next }
+        !found { print }
+    ' "README.md" > README.md.tmp
+    mv README.md.tmp README.md
 }
 
 CMD=${1:-help}
