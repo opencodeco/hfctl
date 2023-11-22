@@ -52,6 +52,14 @@ self-update() {
     git pull origin main
 }
 
+init() {
+    if [ -f .hfctl ]; then
+        echo -e "\033[0;31m.hfctl file already exists\033[0m"
+        exit 1
+    fi
+    echo "IMAGE=${PWD##*/}" > .hfctl
+}
+
 create() {
     docker-run ${HFTTY:--it} composer create-project hyperf/hyperf-skeleton:dev-master $1
     sudo chown -R $UID:$UID $1
