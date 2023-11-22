@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 
-HFCTL=v0.5.0
-IMAGE=opencodeco/hfctl:$HFCTL
+PHP=8.2
+SWOOLE=5.1
 HFCID=runtime/hfctl.cid
 
+if [ -f .hfctl ]; then
+    export $(cat .hfctl | sed 's/#.*//g' | xargs)
+fi
+
+IMAGE=${IMAGE:-opencodeco/hfctl:php$PHP-swoole$SWOOLE}
+
 version() {
-    echo -e "hfctl: \033[1;32m$HFCTL\033[0m"
     echo -e "image: \033[1;32m$IMAGE\033[0m"
 }
 
@@ -130,7 +135,15 @@ analyse() {
 }
 
 docker-run() {
-    docker run --user $UID --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+    docker run --rm -w /opt -v ./:/opt $1 --entrypoint $2 $IMAGE ${@:3}
+}
+
+sonar() {
+    if [ -z "$SONAR_TOKEN" ]; then
+        echo -e "\033[0;31mSONAR_TOKEN is not set\033[0m"
+        exit 1
+    fi
+    docker run --rm -v ./:/usr/src -e SONAR_TOKEN="$SONAR_TOKEN" sonarsource/sonar-scanner-cli -Dsonar.branch.name=$(git branch --show-current) $@
 }
 
 ps() {
@@ -138,7 +151,12 @@ ps() {
 }
 
 build() {
-    docker build -t $IMAGE .
+    docker build \
+    --build-arg PHP=$PHP \
+    --build-arg SWOOLE=$SWOOLE \
+    --build-arg COMPOSER_AUTH="$COMPOSER_AUTH" \
+    $@ \
+    -t $IMAGE .
 }
 
 push() {
